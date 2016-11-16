@@ -10,7 +10,7 @@ from ops import *
 from utils import *
 
 class DCGAN(object):
-    def __init__(self, sess, image_size=108, is_crop=True,
+    def __init__(self, sess, ex, image_size=108, is_crop=True,
                  batch_size=64, sample_size = 64, output_size=64,
                  y_dim=None, z_dim=100, gf_dim=64, df_dim=64,
                  gfc_dim=1024, dfc_dim=1024, c_dim=3, dataset_name='default',
@@ -47,7 +47,10 @@ class DCGAN(object):
         self.dfc_dim = dfc_dim
 
         self.c_dim = c_dim
-
+        
+        self.ex = ex 
+        self.ex.info['errD'] = []
+        self.ex.info['errG'] = []
         # batch normalization : deals with poor initialization helps gradient flow
         self.d_bn1 = batch_norm(name='d_bn1')
         self.d_bn2 = batch_norm(name='d_bn2')
@@ -239,6 +242,9 @@ class DCGAN(object):
 
                 if np.mod(counter, 500) == 2:
                     self.save(config.checkpoint_dir, counter)
+
+            self.ex.info['errD'].append(errD_fake+errD_real)
+            self.ex.info['errG'].append(errG)
 
     def discriminator(self, image, y=None, reuse=False):
         if reuse:
