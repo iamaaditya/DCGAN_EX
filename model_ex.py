@@ -357,7 +357,7 @@ def train(sess, config, ex):
             sample_images = np.array(sample).astype(np.float32)
         
     counter = 1
-    start_time = time.time()
+    start_time = time()
 
     # TODO fix the loading of pretrained model
     # if dcgan_1.load(dcgan_1.checkpoint_dir):
@@ -406,57 +406,57 @@ def train(sess, config, ex):
 
                 # Run g_optim twice to make sure that d_loss does not go to zero (different from paper)
                 # 1
-                _, summary_str = sess.run([g_optim_1, dcgan_1.g_sum],feed_dict={dcgan_1.z: batch_z, dcgan_1.y:batch_labels})
+                _, summary_str = sess.run([g_optim_1, dcgan_1.g_sum],feed_dict={dcgan_1.z: batch_z_1, dcgan_1.y:batch_labels})
                 writer.add_summary(summary_str, counter)
                 # 2
-                _, summary_str = sess.run([g_optim_2, dcgan_2.g_sum],feed_dict={dcgan_2.z: batch_z, dcgan_2.y:batch_labels})
+                _, summary_str = sess.run([g_optim_2, dcgan_2.g_sum],feed_dict={dcgan_2.z: batch_z_2, dcgan_2.y:batch_labels})
                 writer.add_summary(summary_str, counter)
                 
                 # 1
-                errD_fake_1 = dcgan_1.d_loss_fake.eval({dcgan_1.z: batch_z, dcgan_1.y:batch_labels})
+                errD_fake_1 = dcgan_1.d_loss_fake.eval({dcgan_1.z: batch_z_1, dcgan_1.y:batch_labels})
                 errD_real_1 = dcgan_1.d_loss_real.eval({dcgan_1.images: batch_images, dcgan_1.y:batch_labels})
-                errG_1 = dcgan_1.g_loss.eval({dcgan_1.z: batch_z, dcgan_1.y:batch_labels})
+                errG_1 = dcgan_1.g_loss.eval({dcgan_1.z: batch_z_1, dcgan_1.y:batch_labels})
                 # 2
-                errD_fake_2 = dcgan_2.d_loss_fake.eval({dcgan_2.z: batch_z, dcgan_2.y:batch_labels})
+                errD_fake_2 = dcgan_2.d_loss_fake.eval({dcgan_2.z: batch_z_2, dcgan_2.y:batch_labels})
                 errD_real_2 = dcgan_2.d_loss_real.eval({dcgan_2.images: batch_images, dcgan_2.y:batch_labels})
-                errG_2 = dcgan_2.g_loss.eval({dcgan_2.z: batch_z, dcgan_2.y:batch_labels})
+                errG_2 = dcgan_2.g_loss.eval({dcgan_2.z: batch_z_2, dcgan_2.y:batch_labels})
             else:
                 # Update D network
                 # 1
-                _, summary_str = sess.run([d_optim_1, dcgan_1.d_sum], feed_dict={dcgan_1.images: batch_images, dcgan_1.z: batch_z})
+                _, summary_str = sess.run([d_optim_1, dcgan_1.d_sum], feed_dict={dcgan_1.images: batch_images, dcgan_1.z: batch_z_1})
                 writer.add_summary(summary_str, counter)
                 # 2
-                _, summary_str = sess.run([d_optim_2, dcgan_2.d_sum], feed_dict={dcgan_2.images: batch_images, dcgan_2.z: batch_z})
+                _, summary_str = sess.run([d_optim_2, dcgan_2.d_sum], feed_dict={dcgan_2.images: batch_images, dcgan_2.z: batch_z_2})
                 writer.add_summary(summary_str, counter)
 
                 # Update G network
                 # 1 
-                _, summary_str = sess.run([g_optim_1, dcgan_1.g_sum], feed_dict={dcgan_1.z: batch_z})
+                _, summary_str = sess.run([g_optim_1, dcgan_1.g_sum], feed_dict={dcgan_1.z: batch_z_1})
                 writer.add_summary(summary_str, counter)
                 # 2 
-                _, summary_str = sess.run([g_optim_2, dcgan_2.g_sum], feed_dict={dcgan_2.z: batch_z})
+                _, summary_str = sess.run([g_optim_2, dcgan_2.g_sum], feed_dict={dcgan_2.z: batch_z_2})
                 writer.add_summary(summary_str, counter)
 
                 # Run g_optim twice to make sure that d_loss does not go to zero (different from paper)
                 # 1 
-                _, summary_str = sess.run([g_optim_1, dcgan_1.g_sum], feed_dict={dcgan_1.z: batch_z})
+                _, summary_str = sess.run([g_optim_1, dcgan_1.g_sum], feed_dict={dcgan_1.z: batch_z_1})
                 writer.add_summary(summary_str, counter)
                 # 2 
-                _, summary_str = sess.run([g_optim_2, dcgan_2.g_sum], feed_dict={dcgan_2.z: batch_z})
+                _, summary_str = sess.run([g_optim_2, dcgan_2.g_sum], feed_dict={dcgan_2.z: batch_z_2})
                 writer.add_summary(summary_str, counter)
                 
                 # 1 
-                errD_fake_1 = dcgan_1.d_loss_fake.eval({dcgan_1.z: batch_z})
+                errD_fake_1 = dcgan_1.d_loss_fake.eval({dcgan_1.z: batch_z_1})
                 errD_real_1 = dcgan_1.d_loss_real.eval({dcgan_1.images: batch_images})
-                errG_1      = dcgan_1.g_loss.eval({dcgan_1.z: batch_z})
+                errG_1      = dcgan_1.g_loss.eval({dcgan_1.z: batch_z_1})
                 # 2 
-                errD_fake_2 = dcgan_2.d_loss_fake.eval({dcgan_2.z: batch_z})
+                errD_fake_2 = dcgan_2.d_loss_fake.eval({dcgan_2.z: batch_z_2})
                 errD_real_2 = dcgan_2.d_loss_real.eval({dcgan_2.images: batch_images})
-                errG_2      = dcgan_2.g_loss.eval({dcgan_2.z: batch_z})
+                errG_2      = dcgan_2.g_loss.eval({dcgan_2.z: batch_z_2})
 
             counter += 1
             print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss_1: %.8f, g_loss_1: %.8f, d_loss_2: %.8f, g_loss_2: %.8f" \
-                % (epoch, idx, batch_idxs, time.time()-start_time, errD_fake_1+errD_real_1, errG_1, errD_fake_2+errD_real_2, errG_2))
+                % (epoch, idx, batch_idxs, time()-start_time, errD_fake_1+errD_real_1, errG_1, errD_fake_2+errD_real_2, errG_2))
 
             if np.mod(counter, 100) == 1:
                 if config.dataset == 'mnist':
