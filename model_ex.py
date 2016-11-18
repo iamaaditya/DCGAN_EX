@@ -111,8 +111,10 @@ class DCGAN(object):
 
         t_vars = tf.trainable_variables()
 
-        self.d_vars = [var for var in t_vars if 'd_' in var.name and self.m_name in var.name]
-        self.g_vars = [var for var in t_vars if 'g_' in var.name and self.m_name in var.name]
+        self.d_vars = [var for var in t_vars if 'd_' in var.name ]
+        self.g_vars = [var for var in t_vars if 'g_' in var.name ]
+        # self.d_vars = [var for var in t_vars if 'd_' in var.name and self.m_name in var.name]
+        # self.g_vars = [var for var in t_vars if 'g_' in var.name and self.m_name in var.name]
 
         self.saver = tf.train.Saver()
 
@@ -122,21 +124,21 @@ class DCGAN(object):
             tf.get_variable_scope().reuse_variables()
 
         if not self.y_dim:
-            h0 = lrelu(conv2d(image, self.df_dim, name='d_h0_conv'))
-            h1 = lrelu(self.d_bn1(conv2d(h0, self.df_dim*2, name='d_h1_conv')))
-            h2 = lrelu(self.d_bn2(conv2d(h1, self.df_dim*4, name='d_h2_conv')))
-            h3 = lrelu(self.d_bn3(conv2d(h2, self.df_dim*8, name='d_h3_conv')))
-            h4 = linear(tf.reshape(h3, [self.batch_size, -1]), 1, 'd_h3_lin')
+            h0 = lrelu(conv2d(image, self.df_dim, name='d_h0_conv'+'_'+self.m_name))
+            h1 = lrelu(self.d_bn1(conv2d(h0, self.df_dim*2, name='d_h1_conv'+'_'+self.m_name)))
+            h2 = lrelu(self.d_bn2(conv2d(h1, self.df_dim*4, name='d_h2_conv'+'_'+self.m_name)))
+            h3 = lrelu(self.d_bn3(conv2d(h2, self.df_dim*8, name='d_h3_conv'+'_'+self.m_name)))
+            h4 = linear(tf.reshape(h3, [self.batch_size, -1]), 1, name='d_h3_lin'+'_'+self.m_name)
 
             return tf.nn.sigmoid(h4), h4
         else:
             yb = tf.reshape(y, [self.batch_size, 1, 1, self.y_dim])
             x = conv_cond_concat(image, yb)
 
-            h0 = lrelu(conv2d(x, self.c_dim + self.y_dim, name='d_h0_conv'))
+            h0 = lrelu(conv2d(x, self.c_dim + self.y_dim, name='d_h0_conv'+'_'+self.m_name))
             h0 = conv_cond_concat(h0, yb)
 
-            h1 = lrelu(self.d_bn1(conv2d(h0, self.df_dim + self.y_dim, name='d_h1_conv')))
+            h1 = lrelu(self.d_bn1(conv2d(h0, self.df_dim + self.y_dim, name='d_h1_conv'+'_'+self.m_name)))
             h1 = tf.reshape(h1, [self.batch_size, -1])            
             h1 = tf.concat(1, [h1, y])
             
@@ -178,7 +180,12 @@ class DCGAN(object):
             yb = tf.reshape(y, [self.batch_size, 1, 1, self.y_dim])
             z = tf.concat(1, [z, y])
 
-            h0 = tf.nn.relu(self.g_bn0(linear(z, self.gfc_dim, 'g_h0_lin'+'_'+self.m_name)))
+            print "*"*10, self.m_name, "*"*10
+            k = linear(z, self.gfc_dim, 'g_h0_lin'+'_'+self.m_name)
+            kk = self.g_bn0(k)
+            kkk = tf.nn.relu(kk)
+            h0  = kkk
+            # h0 = tf.nn.relu(self.g_bn0(linear(z, self.gfc_dim, 'g_h0_lin'+'_'+self.m_name)))
             h0 = tf.concat(1, [h0, y])
 
             h1 = tf.nn.relu(self.g_bn1(linear(h0, self.gf_dim*2*s4*s4,'g_h1_lin'+'_'+self.m_name)))
@@ -298,7 +305,18 @@ class DCGAN(object):
         else:
             return False
 
-
+def print_model_params(verbose=True):
+    total_parameters = 0
+    for variable in tf.trainable_variables():
+        shape = variable.get_shape()
+        if verbose: print("name: " + str(variable.name) + " - shape:" + str(shape))
+        variable_parametes = 1
+        for dim in shape:
+            variable_parametes *= dim.value
+        if verbose: print("variable parameters: " , variable_parametes)
+        total_parameters += variable_parametes
+    if verbose: print("total params: ", total_parameters)
+    return total_parameters
 
 def train(sess, config, ex):
     """Train DCGAN"""
@@ -306,7 +324,9 @@ def train(sess, config, ex):
     if config.dataset == 'mnist':
         dcgan_1 = DCGAN(sess, ex, "1", image_size=config.image_size, batch_size=config.batch_size, y_dim=10, output_size=28, c_dim=1,
                 dataset_name=config.dataset, is_crop=config.is_crop, checkpoint_dir=config.checkpoint_dir, sample_dir=config.sample_dir)
-        dcgan_2 = DCGAN(sess, ex, "2", image_size=config.image_size, batch_size=config.batch_size, y_dim=10, output_size=28, c_dim=1,
+        
+        print_model_params(verbose=True)
+        dcgan_2 = DCGAN(sess, ex, "1", image_size=config.image_size, batch_size=config.batch_size, y_dim=10, output_size=28, c_dim=1,
                 dataset_name=config.dataset, is_crop=config.is_crop, checkpoint_dir=config.checkpoint_dir, sample_dir=config.sample_dir)
     else:
         dcgan_1 = DCGAN(sess, ex, "1", image_size=config.image_size, batch_size=config.batch_size, output_size=config.output_size, c_dim=config.c_dim,
@@ -314,7 +334,7 @@ def train(sess, config, ex):
         dcgan_2 = DCGAN(sess, ex, "2", image_size=config.image_size, batch_size=config.batch_size, output_size=config.output_size, c_dim=config.c_dim,
                 dataset_name=config.dataset, is_crop=config.is_crop, checkpoint_dir=config.checkpoint_dir, sample_dir=config.sample_dir,gf_dim=32,df_dim=16)
     if config.dataset == 'mnist':
-        data_X, data_y = dcgan_1.load_mnist()
+        data_X, data_y = dcgan_1.load_mnist() # dataset need not be separate
     else:
         data = glob(os.path.join("./data", config.dataset, "*.png"))
         #np.random.shuffle(data)
@@ -326,20 +346,28 @@ def train(sess, config, ex):
     directory = "./tensorboards/" + str(time())
     writer = tf.train.SummaryWriter(directory, dcgan_1.sess.graph)
 
+    # 1 
     d_optim_1 = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1).minimize(dcgan_1.d_loss, var_list=dcgan_1.d_vars)
-    d_optim_2 = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1).minimize(dcgan_2.d_loss, var_list=dcgan_2.d_vars)
     g_optim_1 = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1).minimize(dcgan_1.g_loss, var_list=dcgan_1.g_vars)
+
+    # 2 
+    d_optim_2 = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1).minimize(dcgan_2.d_loss, var_list=dcgan_2.d_vars)
     g_optim_2 = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1).minimize(dcgan_2.g_loss, var_list=dcgan_2.g_vars)
+
     tf.initialize_all_variables().run()
 
+    # 1
     dcgan_1.g_sum = tf.merge_summary([dcgan_1.z_sum, dcgan_1.d__sum, dcgan_1.G_sum, dcgan_1.d_loss_fake_sum, dcgan_1.g_loss_sum])
-    dcgan_2.g_sum = tf.merge_summary([dcgan_2.z_sum, dcgan_2.d__sum, dcgan_2.G_sum, dcgan_2.d_loss_fake_sum, dcgan_2.g_loss_sum])
-
     dcgan_1.d_sum = tf.merge_summary([dcgan_1.z_sum, dcgan_1.d_sum, dcgan_1.d_loss_real_sum, dcgan_1.d_loss_sum])
+
+    # 2
+    dcgan_2.g_sum = tf.merge_summary([dcgan_2.z_sum, dcgan_2.d__sum, dcgan_2.G_sum, dcgan_2.d_loss_fake_sum, dcgan_2.g_loss_sum])
     dcgan_2.d_sum = tf.merge_summary([dcgan_2.z_sum, dcgan_2.d_sum, dcgan_2.d_loss_real_sum, dcgan_2.d_loss_sum])
 
 
+    # 1
     sample_z_1 = np.random.uniform(-1, 1, size=(dcgan_1.sample_size , dcgan_1.z_dim))
+    # 2
     sample_z_2 = np.random.uniform(-1, 1, size=(dcgan_2.sample_size , dcgan_2.z_dim))
     
     if config.dataset == 'mnist':
