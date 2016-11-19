@@ -353,7 +353,7 @@ def train(sess, config, ex):
     ex.info['errG_1'] = []
     ex.info['errG_2'] = []
 
-    directory = "./tensorboards/" + str(time())
+    directory = "./tensorboards/" + config.sample_dir + "_" + str(time())
     writer = tf.train.SummaryWriter(directory, dcgan_1.sess.graph)
 
     # 1 
@@ -447,14 +447,26 @@ def train(sess, config, ex):
                 _, summary_str = sess.run([g_optim_2, dcgan_2.g_sum],feed_dict={dcgan_2.z: batch_z_2, dcgan_2.y:batch_labels})
                 writer.add_summary(summary_str, counter)
                 
-                # 1
-                errD_fake_1 = dcgan_1.d_loss_fake.eval({dcgan_1.z: batch_z_1, dcgan_1.y:batch_labels})
-                errD_real_1 = dcgan_1.d_loss_real.eval({dcgan_1.images: batch_images, dcgan_1.y:batch_labels})
-                errG_1 = dcgan_1.g_loss.eval({dcgan_1.z: batch_z_1, dcgan_1.y:batch_labels})
-                # 2
-                errD_fake_2 = dcgan_2.d_loss_fake.eval({dcgan_2.z: batch_z_2, dcgan_2.y:batch_labels})
-                errD_real_2 = dcgan_2.d_loss_real.eval({dcgan_2.images: batch_images, dcgan_2.y:batch_labels})
-                errG_2 = dcgan_2.g_loss.eval({dcgan_2.z: batch_z_2, dcgan_2.y:batch_labels})
+                # switch
+                if idx % 5 : # on every 5th iteration let the information flow
+                    # 1
+                    errD_fake_1 = dcgan_1.d_loss_fake.eval({dcgan_1.z: batch_z_2, dcgan_1.y:batch_labels})
+                    errD_real_1 = dcgan_1.d_loss_real.eval({dcgan_1.images: batch_images, dcgan_1.y:batch_labels})
+                    errG_1      = dcgan_1.g_loss.eval({dcgan_1.z: batch_z_1, dcgan_1.y:batch_labels})
+                    # 2
+                    errD_fake_2 = dcgan_2.d_loss_fake.eval({dcgan_2.z: batch_z_1, dcgan_2.y:batch_labels})
+                    errD_real_2 = dcgan_2.d_loss_real.eval({dcgan_2.images: batch_images, dcgan_2.y:batch_labels})
+                    errG_2      = dcgan_2.g_loss.eval({dcgan_2.z: batch_z_2, dcgan_2.y:batch_labels})
+                else:
+
+                    # 1
+                    errD_fake_1 = dcgan_1.d_loss_fake.eval({dcgan_1.z: batch_z_1, dcgan_1.y:batch_labels})
+                    errD_real_1 = dcgan_1.d_loss_real.eval({dcgan_1.images: batch_images, dcgan_1.y:batch_labels})
+                    errG_1 = dcgan_1.g_loss.eval({dcgan_1.z: batch_z_1, dcgan_1.y:batch_labels})
+                    # 2
+                    errD_fake_2 = dcgan_2.d_loss_fake.eval({dcgan_2.z: batch_z_2, dcgan_2.y:batch_labels})
+                    errD_real_2 = dcgan_2.d_loss_real.eval({dcgan_2.images: batch_images, dcgan_2.y:batch_labels})
+                    errG_2 = dcgan_2.g_loss.eval({dcgan_2.z: batch_z_2, dcgan_2.y:batch_labels})
             else:
                 # Update D network
                 # 1

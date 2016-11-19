@@ -23,10 +23,10 @@ flags.DEFINE_integer("output_size", 64, "The size of the output images to produc
 flags.DEFINE_integer("c_dim", 3, "Dimension of image color. [3]")
 flags.DEFINE_string("dataset", "mnist", "The name of dataset [celebA, mnist, lsun]")
 flags.DEFINE_string("checkpoint_dir", "checkpoint", "Directory name to save the checkpoints [checkpoint]")
-flags.DEFINE_string("sample_dir", "samples", "Directory name to save the image samples [samples]")
+flags.DEFINE_string("sample_dir", "samples_ex_only_D_fake", "Directory name to save the image samples [samples]")
 flags.DEFINE_boolean("is_train", True, "True for training, False for testing [False]")
 flags.DEFINE_boolean("is_crop", True, "True for training, False for testing [False]")
-flags.DEFINE_boolean("visualize", True, "True for visualizing, False for nothing [False]")
+flags.DEFINE_boolean("visualize", False, "True for visualizing, False for nothing [False]")
 
 flags.DEFINE_string("db_name", "DCGAN_EX", "Name of the DB for mongo")
 FLAGS = flags.FLAGS
