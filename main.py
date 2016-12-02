@@ -2,13 +2,8 @@ import os
 import scipy.misc
 import numpy as np
 
-from model import DCGAN
+from model_bn import DCGAN
 from utils import pp, visualize, to_json
-
-from sacred import Experiment
-from sacred.utils import apply_backspaces_and_linefeeds
-from sacred.observers import MongoObserver
-
 
 import tensorflow as tf
 
@@ -21,34 +16,16 @@ flags.DEFINE_integer("batch_size", 64, "The size of batch images [64]")
 flags.DEFINE_integer("image_size", 108, "The size of image to use (will be center cropped) [108]")
 flags.DEFINE_integer("output_size", 64, "The size of the output images to produce [64]")
 flags.DEFINE_integer("c_dim", 3, "Dimension of image color. [3]")
-flags.DEFINE_string("dataset", "mnist", "The name of dataset [celebA, mnist, lsun]")
+flags.DEFINE_string("dataset", "celebA", "The name of dataset [celebA, mnist, lsun]")
 flags.DEFINE_string("checkpoint_dir", "checkpoint", "Directory name to save the checkpoints [checkpoint]")
 flags.DEFINE_string("sample_dir", "samples", "Directory name to save the image samples [samples]")
-flags.DEFINE_boolean("is_train", True, "True for training, False for testing [False]")
-flags.DEFINE_boolean("is_crop", True, "True for training, False for testing [False]")
-flags.DEFINE_boolean("visualize", True, "True for visualizing, False for nothing [False]")
-
-flags.DEFINE_string("db_name", "DCGAN_EX", "Name of the DB for mongo")
+flags.DEFINE_boolean("is_train", False, "True for training, False for testing [False]")
+flags.DEFINE_boolean("is_crop", False, "True for training, False for testing [False]")
+flags.DEFINE_boolean("visualize", False, "True for visualizing, False for nothing [False]")
 FLAGS = flags.FLAGS
 
-
-ex = Experiment(FLAGS.db_name)
-ex.captured_out_filter = apply_backspaces_and_linefeeds
-ex.observers.append(MongoObserver.create(db_name=FLAGS.db_name))
-
-@ex.config
-def command_line_params():
-    config = flags.FLAGS.__flags
-    print(config)
-
-
-@ex.automain
-def start_sacred():
-    main(FLAGS)
-    return 0
-
-def main(FLAGS):
-    pp.pprint(FLAGS.__flags)
+def main(_):
+    pp.pprint(flags.FLAGS.__flags)
 
     if not os.path.exists(FLAGS.checkpoint_dir):
         os.makedirs(FLAGS.checkpoint_dir)
@@ -57,11 +34,11 @@ def main(FLAGS):
 
     with tf.Session() as sess:
         if FLAGS.dataset == 'mnist':
-            dcgan = DCGAN(sess, ex=ex, image_size=FLAGS.image_size, batch_size=FLAGS.batch_size, y_dim=10, output_size=28, c_dim=1,
+            dcgan = DCGAN(sess, image_size=FLAGS.image_size, batch_size=FLAGS.batch_size, y_dim=10, output_size=28, c_dim=1,
                     dataset_name=FLAGS.dataset, is_crop=FLAGS.is_crop, checkpoint_dir=FLAGS.checkpoint_dir, sample_dir=FLAGS.sample_dir)
         else:
-            dcgan = DCGAN(sess, ex=ex, image_size=FLAGS.image_size, batch_size=FLAGS.batch_size, output_size=FLAGS.output_size, c_dim=FLAGS.c_dim,
-                    dataset_name=FLAGS.dataset, is_crop=FLAGS.is_crop, checkpoint_dir=FLAGS.checkpoint_dir, sample_dir=FLAGS.sample_dir,gf_dim=32,df_dim=16)
+            dcgan = DCGAN(sess, image_size=FLAGS.image_size, batch_size=FLAGS.batch_size, output_size=FLAGS.output_size, c_dim=FLAGS.c_dim,
+                    dataset_name=FLAGS.dataset, is_crop=FLAGS.is_crop, checkpoint_dir=FLAGS.checkpoint_dir, sample_dir=FLAGS.sample_dir)
 
         if FLAGS.is_train:
             dcgan.train(FLAGS)
@@ -76,12 +53,8 @@ def main(FLAGS):
             #                               [dcgan.h4_w, dcgan.h4_b, None])
 
             # Below is codes for visualization
-            # OPTION = 2
-            # visualize(sess, dcgan, FLAGS, OPTION)
-            pass
+            OPTION = 2
+            visualize(sess, dcgan, FLAGS, OPTION)
 
 if __name__ == '__main__':
-    # tf.app.run()
-    # main(FLAGS)
-    start_sacred()
-
+    tf.app.run()
