@@ -48,7 +48,6 @@ class DCGAN(object):
 
         self.c_dim = c_dim
 
-
         self.dataset_name = dataset_name
         self.checkpoint_dir = checkpoint_dir
         self.build_model()
@@ -99,7 +98,7 @@ class DCGAN(object):
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         if update_ops:
             updates = tf.group(*update_ops)
-            
+
             self.g_loss = control_flow_ops.with_dependencies([updates], self.g_loss)
             self.d_loss = control_flow_ops.with_dependencies([updates], self.d_loss)
 
@@ -243,9 +242,9 @@ class DCGAN(object):
 
         if not self.y_dim:
             h0 = lrelu(conv2d(image, self.df_dim, name='d_h0_conv'))
-            h1 = lrelu(tf.contrib.layers.batch_norm(conv2d(h0, self.df_dim*2, name='d_h1_conv'),decay=0.9,epsilon=0.00001,scale=True,scope="d_h1_conv"))
-            h2 = lrelu(tf.contrib.layers.batch_norm(conv2d(h1, self.df_dim*4, name='d_h2_conv'),decay=0.9,epsilon=0.00001,scale=True,scope="d_h2_conv"))
-            h3 = lrelu(tf.contrib.layers.batch_norm(conv2d(h2, self.df_dim*8, name='d_h3_conv'),decay=0.9,epsilon=0.00001,scale=True,scope="d_h3_conv"))
+            h1 = lrelu(tf.contrib.layers.batch_norm(conv2d(h0, self.df_dim*2, name='d_h1_conv'),decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="d_h1_conv"))
+            h2 = lrelu(tf.contrib.layers.batch_norm(conv2d(h1, self.df_dim*4, name='d_h2_conv'),decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="d_h2_conv"))
+            h3 = lrelu(tf.contrib.layers.batch_norm(conv2d(h2, self.df_dim*8, name='d_h3_conv'),decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="d_h3_conv"))
             h4 = linear(tf.reshape(h3, [self.batch_size, -1]), 1, 'd_h3_lin')
 
             return tf.nn.sigmoid(h4), h4
@@ -256,11 +255,11 @@ class DCGAN(object):
             h0 = lrelu(conv2d(x, self.c_dim + self.y_dim, name='d_h0_conv'))
             h0 = conv_cond_concat(h0, yb)
 
-            h1 = lrelu(tf.contrib.layers.batch_norm(conv2d(h0, self.df_dim + self.y_dim, name='d_h1_conv'),decay=0.9,epsilon=0.00001,scale=True,scope="d_h1_conv"))
+            h1 = lrelu(tf.contrib.layers.batch_norm(conv2d(h0, self.df_dim + self.y_dim, name='d_h1_conv'),decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="d_h1_conv"))
             h1 = tf.reshape(h1, [self.batch_size, -1])
             h1 = tf.concat(1, [h1, y])
 
-            h2 = lrelu(tf.contrib.layers.batch_norm(linear(h1, self.dfc_dim, 'd_h2_lin'),decay=0.9,epsilon=0.00001,scale=True,scope="d_h2_lin"))
+            h2 = lrelu(tf.contrib.layers.batch_norm(linear(h1, self.dfc_dim, 'd_h2_lin'),decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="d_h2_lin"))
             h2 = tf.concat(1, [h2, y])
 
             h3 = linear(h2, 1, 'd_h3_lin')
@@ -279,19 +278,19 @@ class DCGAN(object):
             self.z_, self.h0_w, self.h0_b = linear(z, self.gf_dim*8*s16*s16, 'g_h0_lin', with_w=True)
 
             self.h0 = tf.reshape(self.z_, [-1, s16, s16, self.gf_dim * 8])
-            h0 = tf.nn.relu(tf.contrib.layers.batch_norm(self.h0,decay=0.9,epsilon=0.00001,scale=True,scope="g_h0_lin"))
+            h0 = tf.nn.relu(tf.contrib.layers.batch_norm(self.h0,decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="g_h0_lin"))
 
             self.h1, self.h1_w, self.h1_b = deconv2d(h0,
                 [self.batch_size, s8, s8, self.gf_dim*4], name='g_h1', with_w=True)
-            h1 = tf.nn.relu(tf.contrib.layers.batch_norm(self.h1,decay=0.9,epsilon=0.00001,scale=True,scope="g_h1"))
+            h1 = tf.nn.relu(tf.contrib.layers.batch_norm(self.h1,decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="g_h1"))
 
             h2, self.h2_w, self.h2_b = deconv2d(h1,
                 [self.batch_size, s4, s4, self.gf_dim*2], name='g_h2', with_w=True)
-            h2 = tf.nn.relu(tf.contrib.layers.batch_norm(h2,decay=0.9,epsilon=0.00001,scale=True,scope="g_h2"))
+            h2 = tf.nn.relu(tf.contrib.layers.batch_norm(h2,decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="g_h2"))
 
             h3, self.h3_w, self.h3_b = deconv2d(h2,
                 [self.batch_size, s2, s2, self.gf_dim*1], name='g_h3', with_w=True)
-            h3 = tf.nn.relu(tf.contrib.layers.batch_norm(h3,decay=0.9,epsilon=0.00001,scale=True,scope="g_h3"))
+            h3 = tf.nn.relu(tf.contrib.layers.batch_norm(h3,decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="g_h3"))
 
             h4, self.h4_w, self.h4_b = deconv2d(h3,
                 [self.batch_size, s, s, self.c_dim], name='g_h4', with_w=True)
@@ -305,15 +304,15 @@ class DCGAN(object):
             yb = tf.reshape(y, [self.batch_size, 1, 1, self.y_dim])
             z = tf.concat(1, [z, y])
 
-            h0 = tf.nn.relu(tf.contrib.layers.batch_norm(linear(z, self.gfc_dim, 'g_h0_lin'),decay=0.9,epsilon=0.00001,scale=True,scope="g_h0_lin"))
+            h0 = tf.nn.relu(tf.contrib.layers.batch_norm(linear(z, self.gfc_dim, 'g_h0_lin'),decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="g_h0_lin"))
             h0 = tf.concat(1, [h0, y])
 
-            h1 = tf.nn.relu(tf.contrib.layers.batch_norm(linear(h0, self.gf_dim*2*s4*s4, 'g_h1_lin'),decay=0.9,epsilon=0.00001,scale=True,scope="g_h1_lin"))
+            h1 = tf.nn.relu(tf.contrib.layers.batch_norm(linear(h0, self.gf_dim*2*s4*s4, 'g_h1_lin'),decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="g_h1_lin"))
             h1 = tf.reshape(h1, [self.batch_size, s4, s4, self.gf_dim * 2])
 
             h1 = conv_cond_concat(h1, yb)
 
-            h2 = tf.nn.relu(tf.contrib.layers.batch_norm(deconv2d(h1, [self.batch_size, s2, s2, self.gf_dim * 2], name='g_h2'),decay=0.9,epsilon=0.00001,scale=True,scope="g_h2"))
+            h2 = tf.nn.relu(tf.contrib.layers.batch_norm(deconv2d(h1, [self.batch_size, s2, s2, self.gf_dim * 2], name='g_h2'),decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="g_h2"))
             h2 = conv_cond_concat(h2, yb)
 
             return tf.nn.sigmoid(deconv2d(h2, [self.batch_size, s, s, self.c_dim], name='g_h3'))
@@ -331,16 +330,16 @@ class DCGAN(object):
             # project `z` and reshape
             h0 = tf.reshape(linear(z, self.gf_dim*8*s16*s16, 'g_h0_lin'),
                             [-1, s16, s16, self.gf_dim * 8])
-            h0 = tf.nn.relu(tf.contrib.layers.batch_norm(h0, is_training=False,decay=0.9,epsilon=0.00001,scale=True,scope="g_h0_lin"))
+            h0 = tf.nn.relu(tf.contrib.layers.batch_norm(h0, is_training=False,decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="g_h0_lin"))
 
             h1 = deconv2d(h0, [self.batch_size, s8, s8, self.gf_dim*4], name='g_h1')
-            h1 = tf.nn.relu(tf.contrib.layers.batch_norm(h1, is_training=False,decay=0.9,epsilon=0.00001,scale=True,scope="g_h1"))
+            h1 = tf.nn.relu(tf.contrib.layers.batch_norm(h1, is_training=False,decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="g_h1"))
 
             h2 = deconv2d(h1, [self.batch_size, s4, s4, self.gf_dim*2], name='g_h2')
-            h2 = tf.nn.relu(tf.contrib.layers.batch_norm(h2, is_training=False,decay=0.9,epsilon=0.00001,scale=True,scope="g_h2"))
+            h2 = tf.nn.relu(tf.contrib.layers.batch_norm(h2, is_training=False,decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="g_h2"))
 
             h3 = deconv2d(h2, [self.batch_size, s2, s2, self.gf_dim*1], name='g_h3')
-            h3 = tf.nn.relu(tf.contrib.layers.batch_norm(h3, is_training=False,decay=0.9,epsilon=0.00001,scale=True,scope="g_h3"))
+            h3 = tf.nn.relu(tf.contrib.layers.batch_norm(h3, is_training=False,decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="g_h3"))
 
             h4 = deconv2d(h3, [self.batch_size, s, s, self.c_dim], name='g_h4')
 
@@ -353,14 +352,14 @@ class DCGAN(object):
             yb = tf.reshape(y, [self.batch_size, 1, 1, self.y_dim])
             z = tf.concat(1, [z, y])
 
-            h0 = tf.nn.relu(tf.contrib.layers.batch_norm(linear(z, self.gfc_dim, 'g_h0_lin'),is_training=False,decay=0.9,epsilon=0.00001,scale=True,scope="g_h0_lin"))
+            h0 = tf.nn.relu(tf.contrib.layers.batch_norm(linear(z, self.gfc_dim, 'g_h0_lin'),is_training=False,decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="g_h0_lin"))
             h0 = tf.concat(1, [h0, y])
 
-            h1 = tf.nn.relu(tf.contrib.layers.batch_norm(linear(h0, self.gf_dim*2*s4*s4, 'g_h1_lin'), is_training=False,decay=0.9,epsilon=0.00001,scale=True,scope="g_h1_lin"))
+            h1 = tf.nn.relu(tf.contrib.layers.batch_norm(linear(h0, self.gf_dim*2*s4*s4, 'g_h1_lin'), is_training=False,decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="g_h1_lin"))
             h1 = tf.reshape(h1, [self.batch_size, s4, s4, self.gf_dim * 2])
             h1 = conv_cond_concat(h1, yb)
 
-            h2 = tf.nn.relu(tf.contrib.layers.batch_norm(deconv2d(h1, [self.batch_size, s2, s2, self.gf_dim * 2], name='g_h2'), is_training=False,decay=0.9,epsilon=0.00001,scale=True,scope="g_h2"))
+            h2 = tf.nn.relu(tf.contrib.layers.batch_norm(deconv2d(h1, [self.batch_size, s2, s2, self.gf_dim * 2], name='g_h2'), is_training=False,decay=0.9,update_collections=None,epsilon=0.00001,scale=True,scope="g_h2"))
             h2 = conv_cond_concat(h2, yb)
 
             return tf.nn.sigmoid(deconv2d(h2, [self.batch_size, s, s, self.c_dim], name='g_h3'))
