@@ -5,6 +5,7 @@ from glob import glob
 import tensorflow as tf
 import numpy as np
 from six.moves import xrange
+from tensorflow.python.ops import control_flow_ops
 
 from ops import *
 from utils import *
@@ -98,6 +99,7 @@ class DCGAN(object):
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         if update_ops:
             updates = tf.group(*update_ops)
+            
             self.g_loss = control_flow_ops.with_dependencies([updates], self.g_loss)
             self.d_loss = control_flow_ops.with_dependencies([updates], self.d_loss)
 
@@ -277,19 +279,19 @@ class DCGAN(object):
             self.z_, self.h0_w, self.h0_b = linear(z, self.gf_dim*8*s16*s16, 'g_h0_lin', with_w=True)
 
             self.h0 = tf.reshape(self.z_, [-1, s16, s16, self.gf_dim * 8])
-            h0 = tf.nn.relu(tf.contrib.layers.batch_norm(self.h0),decay=0.9,epsilon=0.00001,scale=True,scope="g_h0_lin")
+            h0 = tf.nn.relu(tf.contrib.layers.batch_norm(self.h0,decay=0.9,epsilon=0.00001,scale=True,scope="g_h0_lin"))
 
             self.h1, self.h1_w, self.h1_b = deconv2d(h0,
                 [self.batch_size, s8, s8, self.gf_dim*4], name='g_h1', with_w=True)
-            h1 = tf.nn.relu(tf.contrib.layers.batch_norm(self.h1),decay=0.9,epsilon=0.00001,scale=True,scope="g_h1")
+            h1 = tf.nn.relu(tf.contrib.layers.batch_norm(self.h1,decay=0.9,epsilon=0.00001,scale=True,scope="g_h1"))
 
             h2, self.h2_w, self.h2_b = deconv2d(h1,
                 [self.batch_size, s4, s4, self.gf_dim*2], name='g_h2', with_w=True)
-            h2 = tf.nn.relu(tf.contrib.layers.batch_norm(h2),decay=0.9,epsilon=0.00001,scale=True,scope="g_h2")
+            h2 = tf.nn.relu(tf.contrib.layers.batch_norm(h2,decay=0.9,epsilon=0.00001,scale=True,scope="g_h2"))
 
             h3, self.h3_w, self.h3_b = deconv2d(h2,
                 [self.batch_size, s2, s2, self.gf_dim*1], name='g_h3', with_w=True)
-            h3 = tf.nn.relu(tf.contrib.layers.batch_norm(h3),decay=0.9,epsilon=0.00001,scale=True,scope="g_h3")
+            h3 = tf.nn.relu(tf.contrib.layers.batch_norm(h3,decay=0.9,epsilon=0.00001,scale=True,scope="g_h3"))
 
             h4, self.h4_w, self.h4_b = deconv2d(h3,
                 [self.batch_size, s, s, self.c_dim], name='g_h4', with_w=True)
