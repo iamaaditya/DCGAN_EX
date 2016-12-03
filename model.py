@@ -238,8 +238,6 @@ class DCGAN(object):
         if reuse:
             tf.get_variable_scope().reuse_variables()
 
-        scp = tf.get_variable_scope()
-
         if not self.y_dim:
             h0 = lrelu(conv2d(image, self.df_dim, name='d_h0_conv'))
             h1 = lrelu(batch_norm(conv2d(h0, self.df_dim*2, name='d_h1_conv'),scope="d_h1_conv"))
@@ -267,8 +265,6 @@ class DCGAN(object):
             return tf.nn.sigmoid(h3), h3
 
     def generator(self, z, y=None):
-
-        scp = tf.get_variable_scope()
 
         if not self.y_dim:
             s = self.output_size
@@ -319,8 +315,6 @@ class DCGAN(object):
 
     def sampler(self, z, y=None):
         tf.get_variable_scope().reuse_variables()
-
-        scp = tf.get_variable_scope()
 
         if not self.y_dim:
 
