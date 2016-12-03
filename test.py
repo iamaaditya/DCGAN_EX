@@ -1,5 +1,6 @@
 import tensorflow as tf
 from generator import Generator
+from discriminator import Discriminator
 
 gen = Generator("gen_1")
 
