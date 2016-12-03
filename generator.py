@@ -1,3 +1,6 @@
+import tensorflow as tf
+from ops import *
+
 class Generator(object):
 
     def __init__(self,model_name,batch_size=64,y_dim=None,output_size=64,gf_dim=64,gfc_dim=1024,c_dim=3):
