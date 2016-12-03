@@ -2,11 +2,13 @@ import tensorflow as tf
 from ops import *
 
 class Discriminator(object):
-    def __init__(self,model_name,y_dim=None,df_dim=64,dfc_dim=1024):
+    def __init__(self,model_name,batch_size=64,y_dim=None,df_dim=64,dfc_dim=1024,c_dim=3):
         self.model_name = model_name
+        self.batch_size = batch_size
         self.y_dim = y_dim
         self.df_dim = df_dim
         self.dfc_dim = dfc_dim
+        self.c_dim = c_dim
 
         self.has_built = False
 
@@ -18,6 +20,7 @@ class Discriminator(object):
                 h2 = lrelu(batch_norm(conv2d(h1, self.df_dim*4, name='d_h2_conv'),scope="d_h2_conv"))
                 h3 = lrelu(batch_norm(conv2d(h2, self.df_dim*8, name='d_h3_conv'),scope="d_h3_conv"))
                 h4 = linear(tf.reshape(h3, [self.batch_size, -1]), 1, 'd_h3_lin')
+                self.has_built=True
                 return tf.nn.sigmoid(h4), h4
             else:
                 yb = tf.reshape(y, [self.batch_size, 1, 1, self.y_dim])
@@ -34,5 +37,5 @@ class Discriminator(object):
                 h2 = tf.concat(1, [h2, y])
 
                 h3 = linear(h2, 1, 'd_h3_lin')
-
+                self.has_built=True
                 return tf.nn.sigmoid(h3), h3
