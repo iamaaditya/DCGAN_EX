@@ -5,7 +5,6 @@ from glob import glob
 import tensorflow as tf
 import numpy as np
 from six.moves import xrange
-from tensorflow.python.ops import control_flow_ops
 
 from ops import *
 from utils import *
@@ -94,14 +93,6 @@ class DCGAN(object):
 
         self.g_loss_sum = tf.scalar_summary("g_loss", self.g_loss)
         self.d_loss_sum = tf.scalar_summary("d_loss", self.d_loss)
-
-        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-        if update_ops:
-            updates = tf.group(*update_ops)
-
-            self.g_loss = control_flow_ops.with_dependencies([updates], self.g_loss)
-            self.d_loss = control_flow_ops.with_dependencies([updates], self.d_loss)
-
 
         t_vars = tf.trainable_variables()
 
