@@ -10,6 +10,8 @@ class Adversarial_Pair(object):
 
         if self.generator.y_dim:
             self.y= tf.placeholder(tf.float32, [config.batch_size, config.y_dim], name='y')
+        else:
+            self.y = None
 
         self.images = tf.placeholder(tf.float32, [config.batch_size] + [config.output_size, config.output_size, config.c_dim],name='real_images')
         self.sample_images= tf.placeholder(tf.float32, [sample_size] + [config.output_size, config.output_size, config.c_dim],name='sample_images')
