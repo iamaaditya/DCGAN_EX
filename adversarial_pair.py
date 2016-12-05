@@ -7,6 +7,7 @@ class Adversarial_Pair(object):
         self.discriminator=discriminator
         self.sample_size = sample_size
         self.z_dim = z_dim
+        self.is_grayscale = generator.c_dim==1
 
     def build(self,config):
 
