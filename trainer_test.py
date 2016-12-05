@@ -23,14 +23,16 @@ flags.DEFINE_boolean("is_crop", False, "True for training, False for testing [Fa
 flags.DEFINE_boolean("visualize", False, "True for visualizing, False for nothing [False]")
 FLAGS = flags.FLAGS
 
-gen = Generator("gen")
-disc = Discriminator("disc")
 
-adv = Adversarial_Pair(gen,disc)
-adv.build(FLAGS)
-adv.build_loss()
-adv.build_train_ops(FLAGS)
+with tf.Session() as sess:
+    gen = Generator("gen")
+    disc = Discriminator("disc")
 
-trainer = Trainer(FLAGS)
-trainer.load_data()
-trainer.train_single(adv)
+    adv = Adversarial_Pair(gen,disc)
+    adv.build(FLAGS)
+    adv.build_loss()
+    adv.build_train_ops(FLAGS)
+
+    trainer = Trainer(FLAGS)
+    trainer.load_data()
+    trainer.train_single(adv)
