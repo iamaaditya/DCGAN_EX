@@ -1,3 +1,4 @@
+import tensorflow as tf
 class Adversarial_Pair(object):
     def __init__(self,generator,discriminator):
         self.generator=generator
