@@ -2,11 +2,13 @@ import tensorflow as tf
 import numpy as np
 
 class Adversarial_Pair(object):
-    def __init__(self,generator,discriminator):
+    def __init__(self,generator,discriminator,sample_size=64,z_dim=100):
         self.generator=generator
         self.discriminator=discriminator
+        self.sample_size = sample_size
+        self.z_dim = z_dim
 
-    def build(self,config,sample_size=64,z_dim=100):
+    def build(self,config):
 
         if self.generator.y_dim:
             self.y= tf.placeholder(tf.float32, [config.batch_size, config.y_dim], name='y')
@@ -14,8 +16,8 @@ class Adversarial_Pair(object):
             self.y = None
 
         self.images = tf.placeholder(tf.float32, [config.batch_size] + [config.output_size, config.output_size, config.c_dim],name='real_images')
-        self.sample_images= tf.placeholder(tf.float32, [sample_size] + [config.output_size, config.output_size, config.c_dim],name='sample_images')
-        self.z = tf.placeholder(tf.float32, [None, z_dim],name='z')
+        self.sample_images= tf.placeholder(tf.float32, [self.sample_size] + [config.output_size, config.output_size, config.c_dim],name='sample_images')
+        self.z = tf.placeholder(tf.float32, [None, self.z_dim],name='z')
 
         self.G = self.generator.build(self.z,self.y)
         self.D,self.D_logits = self.discriminator.build(self.images,self.y)
