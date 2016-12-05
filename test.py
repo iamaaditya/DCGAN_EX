@@ -4,6 +4,7 @@ from discriminator import Discriminator
 from adversarial_pair import Adversarial_Pair
 
 gen = Generator("gen_1")
+disc = Discriminator("dis_1")
 
 z = tf.placeholder(tf.float32, [64, 100],name='z')
 
