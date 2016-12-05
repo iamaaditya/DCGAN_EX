@@ -2,6 +2,7 @@ import tensorflow as tf
 from generator import Generator
 from discriminator import Discriminator
 from adversarial_pair import Adversarial_Pair
+import numpy as np
 
 
 flags = tf.app.flags
