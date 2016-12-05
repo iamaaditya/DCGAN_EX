@@ -6,9 +6,9 @@ class Adversarial_Pair(object):
         self.generator=generator
         self.discriminator=discriminator
 
-    def build(self,config,y=None):
+    def build(self,config):
 
-        if self.y_dim:
+        if config.y_dim:
             self.y= tf.placeholder(tf.float32, [config.batch_size, config.y_dim], name='y')
 
         self.images = tf.placeholder(tf.float32, [config.batch_size] + [config.output_size, config.output_size, config.c_dim],name='real_images')
