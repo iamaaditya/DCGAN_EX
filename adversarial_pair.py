@@ -15,10 +15,10 @@ class Adversarial_Pair(object):
         self.sample_images= tf.placeholder(tf.float32, [sample_size] + [config.output_size, config.output_size, config.c_dim],name='sample_images')
         self.z = tf.placeholder(tf.float32, [None, z_dim],name='z')
 
-        self.G = self.generator.build(z,y)
-        self.D,self.D_logits = self.discriminator.build(images,y)
-        self.D_,self.D_logits_ = self.discriminator.build(self.G,y)
-        self.sampler = self.generator.build_sampler(z,y)
+        self.G = self.generator.build(self.z,self.y)
+        self.D,self.D_logits = self.discriminator.build(self.images,self.y)
+        self.D_,self.D_logits_ = self.discriminator.build(self.G,self.y)
+        self.sampler = self.generator.build_sampler(self.z,self.y)
 
     def build_loss(self):
         self.d_loss_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(self.D_logits, tf.ones_like(self.D)))
