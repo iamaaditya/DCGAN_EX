@@ -23,7 +23,7 @@ class Trainer(object):
         g_optim = tf.train.AdamOptimizer(self.config.learning_rate, beta1=self.config.beta1) \
                           .minimize(adv.g_loss, var_list=adv.g_vars)
         tf.initialize_all_variables().run()
-        sample_z = np.random.uniform(-1, 1, size=(adv.sample_size, self.z_dim))
+        sample_z = np.random.uniform(-1, 1, size=(adv.sample_size, adv.z_dim))
 
         if config.dataset == 'mnist':
             sample_images = data_X[0:adv.sample_size]
