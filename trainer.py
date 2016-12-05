@@ -31,7 +31,7 @@ class Trainer(object):
         else:
             sample_files = self.data[0:adv.sample_size]
             sample = [get_image(sample_file, config.image_size, is_crop=config.is_crop, resize_w=adv.generator.output_size, is_grayscale = adv.is_grayscale) for sample_file in sample_files]
-            if (self.is_grayscale):
+            if (adv.is_grayscale):
                 sample_images = np.array(sample).astype(np.float32)[:, :, :, None]
             else:
                 sample_images = np.array(sample).astype(np.float32)
