@@ -16,8 +16,6 @@ class Trainer(object):
 
     def train_single(self,adv):
 
-
-
         d_optim = tf.train.AdamOptimizer(self.config.learning_rate, beta1=self.config.beta1) \
                           .minimize(adv.d_loss, var_list=adv.d_vars)
         g_optim = tf.train.AdamOptimizer(self.config.learning_rate, beta1=self.config.beta1) \
@@ -38,6 +36,20 @@ class Trainer(object):
 
         counter = 1
         start_time = time.time()
+
+
+        ####TODO: ADD LOADING OF CHECKPOINTS
+        #if self.load(self.checkpoint_dir):
+        #    print(" [*] Load SUCCESS")
+        #else:
+        #    print(" [!] Load failed...")
+
+        for epoch in xrange(config.epoch):
+            if config.dataset == 'mnist':
+                batch_idxs = min(len(data_X), config.train_size) // config.batch_size
+            else:
+                data = glob(os.path.join("./data", config.dataset, "*.jpg"))
+                batch_idxs = min(len(data), config.train_size) // config.batch_size
 
 
     def load_mnist(self):
