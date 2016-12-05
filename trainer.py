@@ -29,7 +29,7 @@ class Trainer(object):
             sample_images = self.data_X[0:adv.sample_size]
             sample_labels = self.data_y[0:adv.sample_size]
         else:
-            sample_files = data[0:adv.sample_size]
+            sample_files = self.data[0:adv.sample_size]
             sample = [get_image(sample_file, self.image_size, is_crop=self.is_crop, resize_w=self.output_size, is_grayscale = self.is_grayscale) for sample_file in sample_files]
             if (self.is_grayscale):
                 sample_images = np.array(sample).astype(np.float32)[:, :, :, None]
