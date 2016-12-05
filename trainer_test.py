@@ -27,6 +27,9 @@ gen = Generator("gen")
 disc = Discriminator("disc")
 
 adv = Adversarial_Pair(gen,disc)
+adv.build(FLAGS)
+adv.build_loss()
+adv.build_train_ops(FLAGS)
 
 trainer = Trainer(FLAGS)
 trainer.load_data()
