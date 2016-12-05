@@ -22,17 +22,35 @@ flags.DEFINE_boolean("is_crop", False, "True for training, False for testing [Fa
 flags.DEFINE_boolean("visualize", False, "True for visualizing, False for nothing [False]")
 FLAGS = flags.FLAGS
 
-gen = Generator("gen_1")
-disc = Discriminator("dis_1")
+gen1 = Generator("gen_1")
+disc1 = Discriminator("dis_1")
+
+gen2 = Generator("gen_2")
+disc2 = Discriminator("dis_2")
 
 z = tf.placeholder(tf.float32, [64, 100],name='z')
 
 images = tf.placeholder(tf.float32, [64] + [64, 64, 3],name='real_images')
 
-adv = Adversarial_Pair(gen,disc)
-adv.build(z,images)
-adv.build_loss()
-adv.build_train_ops(FLAGS)
+adv11 = Adversarial_Pair(gen1,disc1)
+adv11.build(z,images)
+adv11.build_loss()
+adv11.build_train_ops(FLAGS)
+
+adv12 = Adversarial_Pair(gen1,disc2)
+adv12.build(z,images)
+adv12.build_loss()
+adv12.build_train_ops(FLAGS)
+
+adv21 = Adversarial_Pair(gen2,disc1)
+adv21.build(z,images)
+adv21.build_loss()
+adv21.build_train_ops(FLAGS)
+
+adv22 = Adversarial_Pair(gen2,disc2)
+adv22.build(z,images)
+adv22.build_loss()
+adv22.build_train_ops(FLAGS)
 
 
 vars = tf.all_variables()
