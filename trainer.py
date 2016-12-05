@@ -25,7 +25,7 @@ class Trainer(object):
         tf.initialize_all_variables().run()
         sample_z = np.random.uniform(-1, 1, size=(adv.sample_size, adv.z_dim))
 
-        if config.dataset == 'mnist':
+        if self.config.dataset == 'mnist':
             sample_images = data_X[0:adv.sample_size]
             sample_labels = data_y[0:adv.sample_size]
         else:
