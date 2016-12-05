@@ -6,7 +6,15 @@ class Adversarial_Pair(object):
         self.generator=generator
         self.discriminator=discriminator
 
-    def build(self,z,images,y=None):
+    def build(self,config,y=None):
+
+        if self.y_dim:
+            self.y= tf.placeholder(tf.float32, [config.batch_size, config.y_dim], name='y')
+
+        self.images = tf.placeholder(tf.float32, [config.batch_size] + [config.output_size, config.output_size, config.c_dim],name='real_images')
+        self.sample_images= tf.placeholder(tf.float32, [config.sample_size] + [config.output_size, config.output_size, config.c_dim],name='sample_images')
+        self.z = tf.placeholder(tf.float32, [None, config.z_dim],name='z')
+
         self.G = self.generator.build(z,y)
         self.D,self.D_logits = self.discriminator.build(images,y)
         self.D_,self.D_logits_ = self.discriminator.build(self.G,y)
