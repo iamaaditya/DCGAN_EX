@@ -8,7 +8,7 @@ class Adversarial_Pair(object):
 
     def build(self,config):
 
-        if generator.y_dim:
+        if self.generator.y_dim:
             self.y= tf.placeholder(tf.float32, [config.batch_size, config.y_dim], name='y')
 
         self.images = tf.placeholder(tf.float32, [config.batch_size] + [config.output_size, config.output_size, config.c_dim],name='real_images')
