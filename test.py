@@ -28,27 +28,24 @@ disc1 = Discriminator("dis_1")
 gen2 = Generator("gen_2")
 disc2 = Discriminator("dis_2")
 
-z = tf.placeholder(tf.float32, [64, 100],name='z')
-
-images = tf.placeholder(tf.float32, [64] + [64, 64, 3],name='real_images')
 
 adv11 = Adversarial_Pair(gen1,disc1)
-adv11.build(z,images)
+adv11.build(FLAGS)
 adv11.build_loss()
 adv11.build_train_ops(FLAGS)
 
 adv12 = Adversarial_Pair(gen1,disc2)
-adv12.build(z,images)
+adv12.build(FLAGS)
 adv12.build_loss()
 adv12.build_train_ops(FLAGS)
 
 adv21 = Adversarial_Pair(gen2,disc1)
-adv21.build(z,images)
+adv21.build(FLAGS)
 adv21.build_loss()
 adv21.build_train_ops(FLAGS)
 
 adv22 = Adversarial_Pair(gen2,disc2)
-adv22.build(z,images)
+adv22.build(FLAGS)
 adv22.build_loss()
 adv22.build_train_ops(FLAGS)
 
