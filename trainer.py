@@ -12,11 +12,11 @@ class Trainer(object):
         if self.config.dataset == 'mnist':
             self.data_X, self.data_y = self.load_mnist()
         else:
-            self.data = glob(os.path.join("./data", config.dataset, "*.jpg"))
+            self.data = glob(os.path.join("./data", self.config.dataset, "*.jpg"))
 
     def train_single(self,adv):
 
-        
+
 
         d_optim = tf.train.AdamOptimizer(self.config.learning_rate, beta1=self.config.beta1) \
                           .minimize(adv.d_loss, var_list=adv.d_vars)
