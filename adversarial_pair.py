@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+
 class Adversarial_Pair(object):
     def __init__(self,generator,discriminator):
         self.generator=generator
@@ -22,8 +23,8 @@ class Adversarial_Pair(object):
 
         t_vars = tf.trainable_variables()
 
-        self.d_vars = [var for var in t_vars if 'Discriminator_'+discriminator.model_name in var.name]
-        self.g_vars = [var for var in t_vars if 'Generator_'+generator.model_name in var.name]
+        self.d_vars = [var for var in t_vars if 'Discriminator_'+self.discriminator.model_name in var.name]
+        self.g_vars = [var for var in t_vars if 'Generator_'+self.generator.model_name in var.name]
 
         self.d_optim = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1).minimize(self.d_loss, var_list=self.d_vars)
         self.g_optim = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1).minimize(self.g_loss, var_list=self.g_vars)
