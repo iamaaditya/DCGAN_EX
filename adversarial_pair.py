@@ -12,7 +12,7 @@ class Adversarial_Pair(object):
     def build(self,config):
 
         if self.generator.y_dim:
-            self.y= tf.placeholder(tf.float32, [config.batch_size, config.y_dim], name='y')
+            self.y=tf.placeholder(tf.float32, [config.batch_size, self.generator.y_dim], name='y')
         else:
             self.y = None
 
@@ -31,6 +31,11 @@ class Adversarial_Pair(object):
         self.g_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(self.D_logits_, tf.ones_like(self.D_)))
 
         self.d_loss = self.d_loss_real + self.d_loss_fake
+
+        self.d_sum = tf.histogram_summary("d", self.D)
+        self.d__sum = tf.histogram_summary("d_", self.D_)
+        self.G_sum = tf.image_summary("G", self.G)
+
 
     def build_train_ops(self,config):
 

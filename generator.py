@@ -11,7 +11,7 @@ class Generator(object):
         self.gf_dim=gf_dim
         self.gfc_dim=gfc_dim
         self.c_dim=c_dim
-        
+
 
         self.has_built=False
 

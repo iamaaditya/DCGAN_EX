@@ -25,7 +25,6 @@ class Discriminator(object):
             else:
                 yb = tf.reshape(y, [self.batch_size, 1, 1, self.y_dim])
                 x = conv_cond_concat(image, yb)
-
                 h0 = lrelu(conv2d(x, self.c_dim + self.y_dim, name='d_h0_conv'))
                 h0 = conv_cond_concat(h0, yb)
 
