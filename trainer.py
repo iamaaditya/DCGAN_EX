@@ -3,6 +3,7 @@ import time
 from glob import glob
 import tensorflow as tf
 import numpy as np
+from utils import *
 
 class Trainer(object):
     def __init__(self,config,sess,adv):
@@ -93,6 +94,27 @@ class Trainer(object):
                     errD_fake = self.d_loss_fake.eval({adv.z: batch_z})
                     errD_real = self.d_loss_real.eval({adv.images: batch_images})
                     errG = self.g_loss.eval({adv.z: batch_z})
+
+                counter += 1
+                print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
+                    % (epoch, idx, batch_idxs,
+                        time.time() - start_time, errD_fake+errD_real, errG))
+
+                if np.mod(counter, 100) == 1:
+                    if self.config.dataset == 'mnist':
+                        samples, d_loss, g_loss = self.sess.run(
+                            [adv.sampler, adv.d_loss, adv.g_loss],
+                            feed_dict={adv.z: sample_z, adv.images: sample_images, adv.y:batch_labels}
+                        )
+                    else:
+                        samples, d_loss, g_loss = self.sess.run(
+                            [adv.sampler, adv.d_loss, adv.g_loss],
+                            feed_dict={adv.z: sample_z, adv.images: sample_images}
+                        )
+                    save_images(samples, [8, 8],
+                                './{}/train_{:02d}_{:04d}.png'.format(self.config.sample_dir, epoch, idx))
+                    print("[Sample] d_loss: %.8f, g_loss: %.8f" % (d_loss, g_loss))
+
 
     def get_batch(self,idx):
         if self.config.dataset == 'mnist':
