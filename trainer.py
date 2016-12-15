@@ -6,11 +6,11 @@ import numpy as np
 from utils import *
 
 class Trainer(object):
-    def __init__(self,config,sess,adv):
+    def __init__(self,config,sess):
         self.config = config
         self.sess = sess
         self.writer = tf.train.SummaryWriter("./logs", self.sess.graph)
-        self.adv = adv
+
 
     def load_data(self):
         if self.config.dataset == 'mnist':
@@ -18,8 +18,7 @@ class Trainer(object):
         else:
             self.data = glob(os.path.join("./data", self.config.dataset, "*.jpg"))
 
-    def train_single(self):
-        adv = self.adv
+    def train_single(self,adv):
 
         d_optim = tf.train.AdamOptimizer(self.config.learning_rate, beta1=self.config.beta1) \
                           .minimize(adv.d_loss, var_list=adv.d_vars)
@@ -55,7 +54,7 @@ class Trainer(object):
                 batch_idxs = min(len(self.data), self.config.train_size) // self.config.batch_size
 
             for idx in xrange(0, batch_idxs):
-                batch_z,batch_images,batch_labels = self.get_batch(idx)
+                batch_z,batch_images,batch_labels = self.get_batch(idx,adv)
                 if self.config.dataset == 'mnist':
                     # Update D network
                     _, summary_str = self.sess.run([d_optim, adv.d_sum],
@@ -68,9 +67,9 @@ class Trainer(object):
                     self.writer.add_summary(summary_str, counter)
 
                     # Run g_optim twice to make sure that d_loss does not go to zero (different from paper)
-                    _, summary_str = self.sess.run([g_optim, adv.G_sum],
-                        feed_dict={ adv.z: batch_z, adv.y:batch_labels })
-                    self.writer.add_summary(summary_str, counter)
+                    #_, summary_str = self.sess.run([g_optim, adv.G_sum],
+                    #    feed_dict={ adv.z: batch_z, adv.y:batch_labels })
+                    #self.writer.add_summary(summary_str, counter)
 
                     errD_fake = adv.d_loss_fake.eval({adv.z: batch_z, adv.y:batch_labels})
                     errD_real = adv.d_loss_real.eval({adv.images: batch_images, adv.y:batch_labels})
@@ -87,9 +86,9 @@ class Trainer(object):
                     self.writer.add_summary(summary_str, counter)
 
                     # Run g_optim twice to make sure that d_loss does not go to zero (different from paper)
-                    _, summary_str = self.sess.run([g_optim, adv.G_sum],
-                        feed_dict={ adv.z: batch_z })
-                    self.writer.add_summary(summary_str, counter)
+                    #_, summary_str = self.sess.run([g_optim, adv.G_sum],
+                    #    feed_dict={ adv.z: batch_z })
+                    #self.writer.add_summary(summary_str, counter)
 
                     errD_fake = self.d_loss_fake.eval({adv.z: batch_z})
                     errD_real = self.d_loss_real.eval({adv.images: batch_images})
@@ -115,8 +114,19 @@ class Trainer(object):
                                 './{}/train_{:02d}_{:04d}.png'.format(self.config.sample_dir, epoch, idx))
                     print("[Sample] d_loss: %.8f, g_loss: %.8f" % (d_loss, g_loss))
 
+    def train_pair(self,gen1,gen2,disc1,disc2):
+        adv11 = Adversarial_Pair(gen1,disc1)
+        adv12 = Adversarial_Pair(gen1,disc2)
+        adv21 = Adversarial_Pair(gen2,disc1)
+        adv22 = Adversarial_Pair(gen2,disc2)
 
-    def get_batch(self,idx):
+        adv11.build(self.config)
+        adv12.build(self.config)
+        adv21.build(self.config)
+        adv22.build(self.config)
+
+
+    def get_batch(self,idx,adv):
         if self.config.dataset == 'mnist':
             batch_images = self.data_X[idx*self.config.batch_size:(idx+1)*self.config.batch_size]
             batch_labels = self.data_y[idx*self.config.batch_size:(idx+1)*self.config.batch_size]
@@ -128,7 +138,7 @@ class Trainer(object):
             else:
                 batch_images = np.array(batch).astype(np.float32)
 
-        batch_z = np.random.uniform(-1, 1, [self.config.batch_size, self.adv.z_dim]).astype(np.float32)
+        batch_z = np.random.uniform(-1, 1, [self.config.batch_size, adv.z_dim]).astype(np.float32)
 
         return batch_z,batch_images,batch_labels
 

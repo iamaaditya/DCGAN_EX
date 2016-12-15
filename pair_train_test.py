@@ -25,14 +25,11 @@ FLAGS = flags.FLAGS
 
 
 with tf.Session() as sess:
-    gen = Generator("gen",y_dim=10,output_size=FLAGS.output_size,c_dim=FLAGS.c_dim)
-    disc = Discriminator("disc",y_dim=10,c_dim=FLAGS.c_dim)
+    gen1 = Generator("gen1",y_dim=10,output_size=FLAGS.output_size,c_dim=FLAGS.c_dim)
+    disc1 = Discriminator("disc1",y_dim=10,c_dim=FLAGS.c_dim)
+    gen2 = Generator("gen2",y_dim=10,output_size=FLAGS.output_size,c_dim=FLAGS.c_dim)
+    disc2 = Discriminator("disc2",y_dim=10,c_dim=FLAGS.c_dim)
 
-    adv = Adversarial_Pair(gen,disc)
-    adv.build(FLAGS)
-    adv.build_loss()
-    adv.build_train_ops(FLAGS)
-
-    trainer = Trainer(FLAGS,sess)
+    trainer = Trainer(FLAGS,sess,adv)
     trainer.load_data()
-    trainer.train_single(adv)
+    trainer.train_pair(gen1,gen2,disc1,disc2)
