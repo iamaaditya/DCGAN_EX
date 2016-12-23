@@ -3,20 +3,38 @@ import time
 from glob import glob
 import tensorflow as tf
 import numpy as np
+from adversarial_pair import Adversarial_Pair
 from utils import *
 
 class Trainer(object):
-    def __init__(self,config,sess):
+    def __init__(self,config,sess,rotate_samples=False):
         self.config = config
         self.sess = sess
         self.writer = tf.train.SummaryWriter("./logs", self.sess.graph)
-
+        self.rotate_samples = rotate_samples
 
     def load_data(self):
         if self.config.dataset == 'mnist':
             self.data_X, self.data_y = self.load_mnist()
+            self.sample_images = self.data_X[0:self.config.sample_size]
+            self.sample_labels = self.data_y[0:self.config.sample_size]
         else:
             self.data = glob(os.path.join("./data", self.config.dataset, "*.jpg"))
+            sample_files = self.data[0:self.config.sample_size]
+            sample = [get_image(sample_file, self.config.image_size, is_crop=self.config.is_crop, resize_w=self.config.output_size, is_grayscale = (self.config.c_dim==1)) for sample_file in sample_files]
+            if (self.config.c_dim==1):
+                self.sample_images = np.array(sample).astype(np.float32)[:, :, :, None]
+            else:
+                self.sample_images = np.array(sample).astype(np.float32)
+
+    def set_data(self,data_X,data_y=None):
+        self.data_X = data_X
+        self.data_y = data_y
+        self.sample_images = self.data_X[0:self.config.sample_size]
+        self.sample_labels = self.data_y[0:self.config.sample_size]
+
+    def clear_y(self):
+        self.data_y = np.zeros_like(self.data_y)
 
     def train_single(self,adv):
 
@@ -26,17 +44,10 @@ class Trainer(object):
                           .minimize(adv.g_loss, var_list=adv.g_vars)
         tf.initialize_all_variables().run()
         sample_z = np.random.uniform(-1, 1, size=(adv.sample_size, adv.z_dim))
+        _,_,sample_y = self.get_batch(0,adv)
 
-        if self.config.dataset == 'mnist':
-            sample_images = self.data_X[0:adv.sample_size]
-            sample_labels = self.data_y[0:adv.sample_size]
-        else:
-            sample_files = self.data[0:adv.sample_size]
-            sample = [get_image(sample_file, self.config.image_size, is_crop=self.config.is_crop, resize_w=adv.generator.output_size, is_grayscale = adv.is_grayscale) for sample_file in sample_files]
-            if (adv.is_grayscale):
-                sample_images = np.array(sample).astype(np.float32)[:, :, :, None]
-            else:
-                sample_images = np.array(sample).astype(np.float32)
+
+
 
         counter = 1
         start_time = time.time()
@@ -103,16 +114,32 @@ class Trainer(object):
                     if self.config.dataset == 'mnist':
                         samples, d_loss, g_loss = self.sess.run(
                             [adv.sampler, adv.d_loss, adv.g_loss],
-                            feed_dict={adv.z: sample_z, adv.images: sample_images, adv.y:batch_labels}
+                            feed_dict={adv.z: sample_z, adv.images: self.sample_images, adv.y:sample_y}
                         )
                     else:
                         samples, d_loss, g_loss = self.sess.run(
                             [adv.sampler, adv.d_loss, adv.g_loss],
-                            feed_dict={adv.z: sample_z, adv.images: sample_images}
+                            feed_dict={adv.z: sample_z, adv.images: self.sample_images}
                         )
+
                     save_images(samples, [8, 8],
                                 './{}/train_{:02d}_{:04d}.png'.format(self.config.sample_dir, epoch, idx))
                     print("[Sample] d_loss: %.8f, g_loss: %.8f" % (d_loss, g_loss))
+
+            final_samples = ()
+            for i in range(0,8):
+                for j in range(0,8):
+                    final_sample_z = np.random.uniform(-1, 1, size=(adv.sample_size, adv.z_dim))
+                    samples = self.sess.run(
+                            [adv.sampler],
+                            feed_dict={adv.z: final_sample_z, adv.y:sample_y}
+                        )
+                    final_samples = final_samples + (samples,)
+
+            final_samples = np.hstack(final_samples)[0]
+            save_images(final_samples,[64,64],'./{}/final_{}.png'.format(self.config.sample_dir,epoch))
+
+
 
     def train_pair(self,gen1,gen2,disc1,disc2):
         adv11 = Adversarial_Pair(gen1,disc1)
@@ -124,6 +151,18 @@ class Trainer(object):
         adv12.build(self.config)
         adv21.build(self.config)
         adv22.build(self.config)
+
+        adv11.build_loss()
+        adv12.build_loss()
+        adv21.build_loss()
+        adv22.build_loss()
+
+        adv11.build_train_ops(self.config)
+        adv12.build_train_ops(self.config)
+        adv21.build_train_ops(self.config)
+        adv22.build_train_ops(self.config)
+
+
 
 
     def get_batch(self,idx,adv):
@@ -139,6 +178,11 @@ class Trainer(object):
                 batch_images = np.array(batch).astype(np.float32)
 
         batch_z = np.random.uniform(-1, 1, [self.config.batch_size, adv.z_dim]).astype(np.float32)
+
+        if(self.rotate_samples):
+            for i in range(0,self.config.batch_size):
+                rotations = np.random.randint(4)
+                batch_images[i] = np.rot90(batch_images[i],k=rotations)
 
         return batch_z,batch_images,batch_labels
 

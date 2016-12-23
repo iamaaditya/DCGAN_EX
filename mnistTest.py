@@ -1,9 +1,10 @@
+import os
+import numpy as np
 import tensorflow as tf
 from generator import Generator
 from discriminator import Discriminator
 from adversarial_pair import Adversarial_Pair
 from trainer import Trainer
-import numpy as np
 
 
 flags = tf.app.flags
@@ -21,15 +22,44 @@ flags.DEFINE_string("sample_dir", "samples", "Directory name to save the image s
 flags.DEFINE_boolean("is_train", False, "True for training, False for testing [False]")
 flags.DEFINE_boolean("is_crop", False, "True for training, False for testing [False]")
 flags.DEFINE_boolean("visualize", False, "True for visualizing, False for nothing [False]")
+flags.DEFINE_integer("sample_size", 64, "The size of sample images [64]")
 FLAGS = flags.FLAGS
 
+FLAGS.c_dim=1
+FLAGS.output_size=28
+FLAGS.dataset = "mnist"
+
+data_dir = os.path.join("./data", "mnist")
+
+fd = open(os.path.join(data_dir,'train-images-idx3-ubyte'))
+loaded = np.fromfile(file=fd,dtype=np.uint8)
+trX = loaded[16:].reshape((60000,28,28,1)).astype(np.float)
+
+fd = open(os.path.join(data_dir,'train-labels-idx1-ubyte'))
+loaded = np.fromfile(file=fd,dtype=np.uint8)
+trY = loaded[8:].reshape((60000)).astype(np.float)
+
+
+zeros = trX[trY==0]
+ones = trX[trY==1]
+#data = np.concatenate((zeros,ones),axis=0)
+data = zeros
+y_vals = np.zeros_like(trY)
+
+print(zeros.shape)
+print(ones.shape)
+print(data.shape)
 
 with tf.Session() as sess:
-    gen1 = Generator("gen1",y_dim=10,output_size=FLAGS.output_size,c_dim=FLAGS.c_dim)
-    disc1 = Discriminator("disc1",y_dim=10,c_dim=FLAGS.c_dim)
-    gen2 = Generator("gen2",y_dim=10,output_size=FLAGS.output_size,c_dim=FLAGS.c_dim)
-    disc2 = Discriminator("disc2",y_dim=10,c_dim=FLAGS.c_dim)
+    gen = Generator("gen",output_size=FLAGS.output_size,c_dim=FLAGS.c_dim,y_dim=10)
+    disc = Discriminator("disc",c_dim=FLAGS.c_dim,y_dim=10)
 
-    trainer = Trainer(FLAGS,sess)
+    adv = Adversarial_Pair(gen,disc,sample_size=FLAGS.sample_size)
+    adv.build(FLAGS)
+    adv.build_loss()
+    adv.build_train_ops(FLAGS)
+
+    trainer = Trainer(FLAGS,sess,rotate_samples=True)
     trainer.load_data()
-    trainer.train_pair(gen1,gen2,disc1,disc2)
+    trainer.clear_y()
+    trainer.train_single(adv)

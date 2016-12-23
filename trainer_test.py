@@ -21,6 +21,7 @@ flags.DEFINE_string("sample_dir", "samples", "Directory name to save the image s
 flags.DEFINE_boolean("is_train", False, "True for training, False for testing [False]")
 flags.DEFINE_boolean("is_crop", False, "True for training, False for testing [False]")
 flags.DEFINE_boolean("visualize", False, "True for visualizing, False for nothing [False]")
+flags.DEFINE_integer("sample_size", 64, "The size of sample images [64]")
 FLAGS = flags.FLAGS
 
 
@@ -28,7 +29,7 @@ with tf.Session() as sess:
     gen = Generator("gen",y_dim=10,output_size=FLAGS.output_size,c_dim=FLAGS.c_dim)
     disc = Discriminator("disc",y_dim=10,c_dim=FLAGS.c_dim)
 
-    adv = Adversarial_Pair(gen,disc)
+    adv = Adversarial_Pair(gen,disc,sample_size=FLAGS.sample_size)
     adv.build(FLAGS)
     adv.build_loss()
     adv.build_train_ops(FLAGS)
