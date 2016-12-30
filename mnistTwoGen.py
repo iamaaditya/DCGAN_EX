@@ -52,15 +52,11 @@ print(ones.shape)
 print(data.shape)
 
 with tf.Session() as sess:
-    gen = Generator("gen",output_size=FLAGS.output_size,c_dim=FLAGS.c_dim,y_dim=10)
+    gen_1 = Generator("gen1",output_size=FLAGS.output_size,c_dim=FLAGS.c_dim,y_dim=10)
+    gen_2 = Generator("gen2",output_size=FLAGS.output_size,c_dim=FLAGS.c_dim,y_dim=10)
     disc = Discriminator("disc",c_dim=FLAGS.c_dim,y_dim=10)
-
-    adv = Adversarial_Pair(gen,disc,sample_size=FLAGS.sample_size,z_dim=FLAGS.z_dim)
-    adv.build(FLAGS)
-    adv.build_loss()
-    adv.build_train_ops(FLAGS)
 
     trainer = Trainer(FLAGS,sess,rotate_samples=False)
     trainer.load_data()
     trainer.clear_y()
-    trainer.train_single(adv)
+    trainer.train_two_generators(gen_1,gen_2,disc)
