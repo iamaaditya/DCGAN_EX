@@ -69,17 +69,22 @@ class Pair(object):
 
                 batch_images,batch_masks,batch_offsets = self.get_batch(index)
 
-                sess.run([self.d_optim],feed_dict={self.real_images: batch_images,self.patch_masks: batch_masks, self.patch_offsets: batch_offsets})
+                _,errD_fake,errD_real = sess.run([self.d_optim,self.d_loss_fake,self.d_loss_real],feed_dict={self.real_images: batch_images,self.patch_masks: batch_masks, self.patch_offsets: batch_offsets})
 
-                sess.run([self.g_optim],feed_dict={self.real_images: batch_images,self.patch_masks: batch_masks, self.patch_offsets: batch_offsets})
+                _,errG = sess.run([self.g_optim,self.g_loss],feed_dict={self.real_images: batch_images,self.patch_masks: batch_masks, self.patch_offsets: batch_offsets})
+
+
 
                 counter = counter+1
                 end_time = time.time()
-                print('{:4d}: {:.4f}'.format(index,end_time-start_time))
+                print('{:4d} - {:4d}:  Time: {:.4f}, D_loss_fake: {:.4f}, D_loss_real: {:.4f}, G_loss: {:.4f}'.format(epoch,index,end_time-start_time,errD_fake,errD_real,errG))
                 if(counter%100==0):
                     result = self.G.eval({self.real_images: sample_images,self.patch_masks: sample_masks, self.patch_offsets: sample_offsets})
                     save_images(result,[4,4],'./camo_samples/train_{:02d}_{:04d}_1.png'.format(epoch,index))
-                    print(counter)
+                    d_real = self.D.eval({self.real_images: sample_images,self.patch_masks: sample_masks, self.patch_offsets: sample_offsets})
+                    d_fake = self.D_.eval({self.real_images: sample_images,self.patch_masks: sample_masks, self.patch_offsets: sample_offsets})
+                    print(d_real)
+                    print(d_fake)
 
 
     def print_model_params(verbose=True):

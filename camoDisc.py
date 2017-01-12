@@ -26,4 +26,4 @@ class Discriminator(object):
             #h4 = linear(tf.reshape(images,[self.batch_size,-1]),1,'d_h4_lin')
 
             self.has_built=True
-            return h4,tf.nn.sigmoid(h4)
+            return tf.nn.sigmoid(h4),h4
