@@ -174,7 +174,7 @@ class Trainer(object):
             for idx in xrange(0, batch_idxs):
                 batch_z,batch_images,batch_labels = self.get_batch(idx,adv1)
                 if self.config.dataset == 'mnist':
-                    if((idx//10)%2==0):
+                    if((idx//100)%2==0):
                         # Update D network
                         _, summary_str = self.sess.run([d_optim_1, adv1.d_sum],
                             feed_dict={ adv1.images: batch_images, adv1.z: batch_z, adv1.y:batch_labels })
