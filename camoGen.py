@@ -16,30 +16,30 @@ class Generator(object):
             self.im = input_images
             self.pm = patch_masks
             self.po = patch_offsets
-            # h0 = lrelu(conv2d(input_images, 8, d_h=1,d_w=1,name='g_h0_conv'))
-            # h1 = lrelu(batch_norm(conv2d(h0, 32, d_h=4,d_w=4,name='g_h1_conv'),scope="g_h1_conv"))
-            # h2 = lrelu(batch_norm(conv2d(h1,128,d_h=4,d_w=4,name='g_h2_conv'),scope="g_h2_conv"))
-            # h3 = lrelu(batch_norm(conv2d(h2,512,d_h=4,d_w=4,name='g_h3_conv'),scope="g_h3_conv"))
-            # h4,_,_ = deconv2d(h3,[self.batch_size,8,8,128],name='g_h4_deconv', with_w=True)
-            # h4 = lrelu(batch_norm(h4,scope='g_h4_deconv'))
-            # h5,_,_ = deconv2d(h4,[self.batch_size,16,16,16],name='g_h5_deconv',with_w=True)
-            # h5 = lrelu(batch_norm(h5,scope='g_h5_deconv'))
-            # h6,_,_ = deconv2d(h5,[self.batch_size,32,32,3],name='g_h6_deconv',with_w=True)
+            h0 = lrelu(conv2d(input_images, 8, d_h=1,d_w=1,name='g_h0_conv'))
+            h1 = lrelu(batch_norm(conv2d(h0, 32, d_h=4,d_w=4,name='g_h1_conv'),scope="g_h1_conv"))
+            h2 = lrelu(batch_norm(conv2d(h1,128,d_h=4,d_w=4,name='g_h2_conv'),scope="g_h2_conv"))
+            h3 = lrelu(batch_norm(conv2d(h2,512,d_h=4,d_w=4,name='g_h3_conv'),scope="g_h3_conv"))
+            h4,_,_ = deconv2d(h3,[self.batch_size,8,8,128],name='g_h4_deconv', with_w=True)
+            h4 = lrelu(batch_norm(h4,scope='g_h4_deconv'))
+            h5,_,_ = deconv2d(h4,[self.batch_size,16,16,16],name='g_h5_deconv',with_w=True)
+            h5 = lrelu(batch_norm(h5,scope='g_h5_deconv'))
+            h6,_,_ = deconv2d(h5,[self.batch_size,32,32,3],name='g_h6_deconv',with_w=True)
 
 
             #smaller gen
-            h0 = lrelu(conv2d(input_images, 4, d_h=2,d_w=2,name='g_h0_conv')) #128x128x4
-            h1 = lrelu(batch_norm(conv2d(h0, 16, d_h=4,d_w=4,name='g_h1_conv'),scope="g_h1_conv")) #32x32x16
-            h2 = lrelu(batch_norm(conv2d(h1,64,d_h=4,d_w=4,name='g_h2_conv'),scope="g_h2_conv")) #8x8x64
-            h3,_,_ = deconv2d(h2,[self.batch_size,16,16,32],name='g_h3_deconv', with_w=True) #16x16x32
-            h3 = lrelu(batch_norm(h3,scope='g_h3_deconv'))
-            h4,_,_ = deconv2d(h3,[self.batch_size,32,32,3],name='g_h4_deconv',with_w=True) #32x32x3
+            # h0 = lrelu(batch_norm(conv2d(input_images, 4, d_h=2,d_w=2,name='g_h0_conv'),scope="g_h0_conv")) #128x128x4
+            # h1 = lrelu(batch_norm(conv2d(h0, 16, d_h=4,d_w=4,name='g_h1_conv'),scope="g_h1_conv")) #32x32x16
+            # h2 = lrelu(batch_norm(conv2d(h1,64,d_h=4,d_w=4,name='g_h2_conv'),scope="g_h2_conv")) #8x8x64
+            # h3,_,_ = deconv2d(h2,[self.batch_size,16,16,32],name='g_h3_deconv', with_w=True) #16x16x32
+            # h3 = lrelu(batch_norm(h3,scope='g_h3_deconv'))
+            # h4,_,_ = deconv2d(h3,[self.batch_size,32,32,3],name='g_h4_deconv',with_w=True) #32x32x3
 
 
             #minimal gen
             # h4 = lrelu(batch_norm(conv2d(input_images,3,d_h=8,d_w=8,name='g_h0_conv'),scope='g_h0_conv'))
             #output of 32x32x3 patches
-            patches = tf.nn.tanh(h4)
+            patches = tf.nn.tanh(h6)
 
             #create hole of 0s in input images
             images_with_hole = input_images*patch_masks

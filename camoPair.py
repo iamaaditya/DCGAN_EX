@@ -38,7 +38,7 @@ class Pair(object):
         self.g_optim = tf.train.AdamOptimizer(0.0002, beta1=0.5).minimize(self.g_loss, var_list=self.g_vars)
 
     def load_data(self):
-        self.data = glob(os.path.join("./data", "texture", "*.jpg"))
+        self.data = glob(os.path.join("./data", "texture", "braided*.jpg"))
         self.all_images = [get_image(image, 256, is_crop=True, resize_w=256, is_grayscale = False) for image in self.data]
         print("FINISHED LOADING DATA")
 
@@ -68,6 +68,7 @@ class Pair(object):
                 start_time = time.time()
 
                 batch_images,batch_masks,batch_offsets = self.get_batch(index)
+
 
                 _,errD_fake,errD_real = sess.run([self.d_optim,self.d_loss_fake,self.d_loss_real],feed_dict={self.real_images: batch_images,self.patch_masks: batch_masks, self.patch_offsets: batch_offsets})
 
@@ -109,4 +110,4 @@ with tf.Session() as sess:
     p.build_train_ops()
     p.print_model_params()
     p.load_data()
-    p.train(100,sess)
+    p.train(1000,sess)
